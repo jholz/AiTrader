@@ -1,23 +1,52 @@
 <?php
 class ExchangesController extends AppController {
+	var $name = 'Exchanges';
+	
+	function add() {
+		if(empty($this->data)) {
+		} else {
+			if($this->Exchange->save($this->data)) {
+				$this->redirect(array('action' => 'index'));
+			} else {
+			}
+		}
+	}
+
 	function index() {
-		$this->_getTxns();
+		$this->_getTransactions();
+		$this->set('exchanges', $this->Exchange->find('all', array(
+			'conditions' => array(
+				'Exchange.active' => true,
+			),
+		)));
 	}
 	
-	function _getTxns() {
-		$this->__exchb_getTxns();
+	function _getTransactions() {
+		$this->__exchb_getTransactions();
 	}
 	
-	function __exchb_getTxns() {
-		$txns = $this->__exchb_recent();
-		foreach($txns as $txn) {
-			$exists = $this->Exchange->find('count', array(
-//				'conditions' => array(
-//					'Transaction.serial' => $txn->tid,
-//				),
+	function __exchb_getTransactions() {
+		$transactions = $this->__exchb_recent();
+		$num_transactions = count($transactions);
+		for($i = 0; $i < $num_transactions; $i++) {
+			$transaction = $transactions[$i];
+			$duplicates = $this->Exchange->ExchangeTransaction->find('count', array(
+				'conditions' => array(
+					'ExchangeTransaction.serial' => $transaction->tid,
+				),
 			));
-//			if($exists == 0) {
-//			}
+			if($duplicates == 0) {
+				$data = array(
+					'Transaction' => array(
+						'Transaction.active' => true,
+					),
+				);
+				if(!$this->Exchange->ExchangeTransaction->Transaction->save($data)) {
+				} else {
+					
+				}
+			} else {
+			}
 		}
 	}
 	
@@ -102,11 +131,6 @@ class ExchangesController extends AppController {
 		return json_decode($json);
 	}
 	
-	function __exchb_recent() {
-		$json = file_get_contents('https://www.exchangebitcoins.com/data/recent');
-		return json_decode($json);
-	}
-	
 	function __exchb_sellBTC($username, $password, $amount, $price) {
 		$content = 'name=' . $username . '&pass=' . $password;
 		$opts = array('http' =>
@@ -119,11 +143,6 @@ class ExchangesController extends AppController {
 		);
 		$context = stream_context_create($opts);
 		$json = file_get_contents('https://www.exchangebitcoins.com/data/getDepositAddress', false, $context);
-		return json_decode($json);
-	}
-	
-	function __exchb_ticker() {
-		$json = file_get_contents('https://www.exchangebitcoins.com/data/ticker');
 		return json_decode($json);
 	}
 
