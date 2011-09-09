@@ -3,18 +3,16 @@ class TickersController extends AppController {
 	var $name = 'Tickers';
 	
 	function index() {
-		debug($this->Ticker->find('all', array(
-			'contain' => array(
+		$this->set('tickers', $this->Ticker->Exchange->find('all', array(
+			'conditions' => array(
+				'Exchange.active' => 1,
 			),
-			'limit' => 1,
+			'contain' => array(
+				'Ticker' => array(
+					'limit' => 1,
+				),
+			),
 		)));
-//		$this->set('tickers', $this->Ticker->Exchange->find('all', array(
-//			'conditions' => array(
-//				'Exchange.active' => 1,
-//			),
-//			'contain' => array(
-//			),
-//		)));
 		$this->_updateAll();
 	}
 	
